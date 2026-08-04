@@ -6,7 +6,7 @@ SonicSense AI is an end-to-end **Deep Learning application for automatic music g
 
 The project provides a complete machine-learning pipeline:
 
-**Audio Processing → Mel Spectrogram → CNN Model → FastAPI Backend → Interactive Web Interface**
+**Audio Processing → 10 × 3-second Audio Slices → Mel Spectrogram (128 × 130) → CNN Model → Genre Prediction → FastAPI Backend → Interactive Web Interface**
 
 ---
 
@@ -164,26 +164,32 @@ The dataset contains **1,000 audio tracks**, with each track approximately **30 
 
 ## 🧠 Machine Learning Pipeline
 
-The project follows the following workflow:
+The project uses an audio-slicing and Mel Spectrogram-based CNN pipeline:
 
 ```text
-Raw Audio
-    ↓
-Audio Preprocessing
-    ↓
-Mel Spectrogram Generation
-    ↓
-Feature Preparation
-    ↓
-CNN Model
-    ↓
-Genre Classification
-    ↓
-Confidence Score
-    ↓
-FastAPI
-    ↓
-Web Interface
+GTZAN Audio Track (30 seconds)
+            ↓
+     Split into 10 slices
+            ↓
+     3-second Audio Slices
+            ↓
+      Mel Spectrogram
+            ↓
+        128 × 130
+            ↓
+      Add Channel Dimension
+            ↓
+       128 × 130 × 1
+            ↓
+           CNN
+            ↓
+    10 Genre Classification
+            ↓
+     Confidence Score
+            ↓
+        FastAPI API
+            ↓
+     Interactive Web UI
 ```
 
 ### Why Mel Spectrograms?
