@@ -1,14 +1,15 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import tensorflow as tf
 import numpy as np
 import librosa
 import os
 import shutil
+import tempfile
 
 app = FastAPI()
 
-# Frontend ko allow karne ke liye
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,7 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Model Load karna
+# ---------- Model ----------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "model", "music_genre_cnn.keras")
 print(f"Loading model from: {MODEL_PATH}")
@@ -29,47 +30,55 @@ except Exception as e:
     model = None
     print(f"⚠️ Error loading model: {e}")
 
-GENRES = ['blues', 'classical', 'country', 'disco', 'hiphop', 'jazz', 'metal', 'pop', 'reggae', 'rock']
+GENRES = ['blues', 'classical', 'country', 'disco', 'hiphop',
+          'jazz', 'metal', 'pop', 'reggae', 'rock']
+
 
 def preprocess_audio(file_path):
-    # Audio Processing Logic
     SAMPLE_RATE = 22050
-    DURATION = 3 
+    DURATION = 3
     y, sr = librosa.load(file_path, sr=SAMPLE_RATE, duration=DURATION)
-    
+
     expected_samples = SAMPLE_RATE * DURATION
     if len(y) < expected_samples:
         y = np.pad(y, (0, int(expected_samples - len(y))), mode='constant')
-        
+
     melspec = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, n_fft=2048, hop_length=512)
     melspec_db = librosa.power_to_db(melspec, ref=np.max)
-    
+
     target_width = 130
     if melspec_db.shape[1] > target_width:
         melspec_db = melspec_db[:, :target_width]
     else:
-        melspec_db = np.pad(melspec_db, ((0,0), (0, target_width - melspec_db.shape[1])))
-    
+        melspec_db = np.pad(melspec_db, ((0, 0), (0, target_width - melspec_db.shape[1])))
+
     return melspec_db.reshape(1, 128, 130, 1)
+
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     if model is None:
         return {"error": "Model not loaded"}
-    
-    temp_filename = f"temp_{file.filename}"
-    with open(temp_filename, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-        
+
+    suffix = os.path.splitext(file.filename)[1] or ".wav"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        shutil.copyfileobj(file.file, tmp)
+        temp_filename = tmp.name
+
     try:
         processed_data = preprocess_audio(temp_filename)
         prediction = model.predict(processed_data)
-        class_idx = np.argmax(prediction)
+        class_idx = int(np.argmax(prediction))
         confidence = float(np.max(prediction))
-        
         return {"genre": GENRES[class_idx], "confidence": f"{confidence * 100:.2f}%"}
     except Exception as e:
         return {"error": str(e)}
     finally:
         if os.path.exists(temp_filename):
             os.remove(temp_filename)
+
+
+# ---------- Serve the frontend (must stay LAST) ----------
+FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
+if os.path.isdir(FRONTEND_DIR):
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
