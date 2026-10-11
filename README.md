@@ -79,31 +79,20 @@ pip install -r requirements.txt
 
 ---
 
-### 3. Train the Model
+### 3. Get the trained model
 
-The trained model is not included in the repository because of its large file size.
+**Option A: Download the pre-trained model (quickest)**
 
-Open:
+Download [`music_genre_cnn.keras`](https://github.com/Ayu-koda/Sonic-Sense-AI/releases/download/v1.0/music_genre_cnn.keras)
+(193 MB) and place it in `backend/model/`.
 
-```text
-music_genre_solution.ipynb
-```
+**Option B: Train it yourself**
 
-Run all cells in the notebook.
+1. Open `music_genre_solution.ipynb` (for example, on Kaggle with the GTZAN dataset).
+2. Run the CNN section. It saves `best_audio_cnn.keras`.
+3. Rename it to `music_genre_cnn.keras` and move it into `backend/model/`.
 
-The notebook will generate:
 
-```text
-music_genre_cnn.keras
-```
-
-Move the generated model into:
-
-```text
-backend/model/music_genre_cnn.keras
-```
-
----
 
 ### 4. Start the FastAPI Backend
 
