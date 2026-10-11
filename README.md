@@ -20,10 +20,15 @@ The project provides a complete machine-learning pipeline:
 * 🔄 **End-to-End Pipeline** — Integrates data preprocessing, model training, inference, API serving, and frontend interaction.
 
 ---
-
 ## 📸 Project Demo
 
-> Add screenshots or a GIF of the application here.
+<p align="center">
+  <img width="700" alt="Classical genre result" src="https://github.com/user-attachments/assets/1a23baf0-cf34-4370-a1bb-fad9f788e22d" />
+</p>
+<p align="center">
+  <img width="700" alt="Rock genre result" src="https://github.com/user-attachments/assets/22e444f6-c8e2-421f-883f-d144a04620d6" />
+</p>
+
 
 Example:
 
